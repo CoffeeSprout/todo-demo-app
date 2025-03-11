@@ -4,13 +4,13 @@ import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import io.quarkiverse.langchain4j.RegisterAiService;
-import jakarta.enterprise.context.SessionScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.time.temporal.ChronoUnit;
 import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Timeout;
 
 @RegisterAiService(retrievalAugmentor = TodoRetrievalAugmentor.class)
-@SessionScoped
+@ApplicationScoped
 public interface TodoAiService {
 
     @SystemMessage("You are a helpful assistant in a TODO app")
