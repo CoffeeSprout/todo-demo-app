@@ -6,12 +6,8 @@ metadata:
   name: todo-db
   namespace: todo-demo-app
 spec:
-  # Use PostgreSQL 17.3 image from workshop registry
-  imageName: workshop-registry.io/postgresql:17.3-bookworm
-  
-  # Pull container images from private registry
-  imagePullSecrets:
-    - name: workshop-registry-secret
+  # Use latest PostgreSQL 17.3 image from CloudNative PG
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.3-bookworm
   
   # High availability configuration with 3 PostgreSQL instances
   # One primary and two replicas for fault tolerance and read scalability
