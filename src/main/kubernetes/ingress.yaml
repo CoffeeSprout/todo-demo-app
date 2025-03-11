@@ -1,26 +1,45 @@
 ---
+# Ingress configuration for external access
+# Defines how external traffic should reach the application
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: todo-demo-app-ingress
   namespace: todo-demo-app
   annotations:
-    kubernetes.io/ingress.class: haproxy
+    # Ingress controller configuration
+    kubernetes.io/ingress.class: haproxy  # Using HAProxy Ingress controller
+    
+    # TLS/SSL certificate management with Let's Encrypt
+    # Automatically provisions and renews certificates
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    
+    # DNS automation with external-dns controller
+    # Automatically creates/updates DNS records in your DNS provider
     external-dns.alpha.kubernetes.io/hostname: "todo-demo.coffeesprout.cloud"
+    
+    # Additional security headers could be added here
+    # haproxy-ingress.github.io/ssl-redirect: "true"
+    # haproxy-ingress.github.io/hsts: "true"
+    # haproxy-ingress.github.io/hsts-max-age: "31536000"
 spec:
+  # TLS configuration
   tls:
     - hosts:
         - todo-demo.coffeesprout.cloud
+      # Secret name where the TLS certificate will be stored
+      # This secret is created automatically by cert-manager
       secretName: todo-demo-app-tls
+  
+  # Routing rules
   rules:
-    - host: todo-demo.coffeesprout.cloud
+    - host: todo-demo.coffeesprout.cloud  # Domain name for the application
       http:
         paths:
-          - path: /
-            pathType: Prefix
+          - path: /              # Root path
+            pathType: Prefix     # Match any URI starting with /
             backend:
               service:
-                name: todo-demo-app
+                name: todo-demo-app  # Service to route traffic to
                 port:
-                  number: 80
+                  number: 80         # Service port to route traffic to

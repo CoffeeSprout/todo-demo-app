@@ -1,17 +1,26 @@
 ---
+# Network Policy for restricting pod network access
+# Implements security best practice of limiting network communication
+# to only what is necessary (principle of least privilege)
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: todo-demo-app-network-policy
   namespace: todo-demo-app
 spec:
+  # Apply to all pods with the app=todo-demo-app label
   podSelector:
     matchLabels:
       app: todo-demo-app
+  # Apply both ingress (inbound) and egress (outbound) restrictions
   policyTypes:
   - Ingress
   - Egress
+  
+  # === INGRESS RULES (inbound traffic) ===
   ingress:
+  # Allow traffic from the ingress-nginx namespace to port 8080
+  # This allows the ingress controller to route external traffic to our application
   - from:
     - namespaceSelector:
         matchLabels:
@@ -19,16 +28,22 @@ spec:
     ports:
     - protocol: TCP
       port: 8080
+  
+  # === EGRESS RULES (outbound traffic) ===
   egress:
+  # Allow traffic to PostgreSQL database pods on port 5432
   - to:
     - podSelector:
         matchLabels:
-          cnpg.io/cluster: todo-db
+          cnpg.io/cluster: todo-db  # CloudNative PG adds this label
     ports:
     - protocol: TCP
-      port: 5432
+      port: 5432  # PostgreSQL port
+  
+  # Allow DNS resolution (required for all pods)
+  # Without this, pods cannot resolve domain names
   - to:
-    - namespaceSelector: {}
+    - namespaceSelector: {}  # All namespaces (kube-system contains DNS)
     ports:
     - protocol: TCP
       port: 53
@@ -36,3 +51,11 @@ spec:
     - protocol: UDP
       port: 53
       endPort: 53
+      
+  # TODO: Add egress rule for OpenAI API if using external API
+  # - to:
+  #   - ipBlock:
+  #       cidr: 0.0.0.0/0  # Or more specific CIDR for OpenAI
+  #   ports:
+  #   - protocol: TCP
+  #     port: 443  # HTTPS

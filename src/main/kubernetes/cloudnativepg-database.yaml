@@ -1,20 +1,42 @@
+# CloudNative PostgreSQL database definition
+# Uses the CloudNative PG operator to create and manage a PostgreSQL cluster
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: todo-db
   namespace: todo-demo-app
 spec:
-  imageName: ghcr.io/cloudnative-pg/postgresql:17.3-bookworm
+  # Use PostgreSQL 17.3 image from workshop registry
+  imageName: workshop-registry.io/postgresql:17.3-bookworm
+  
+  # Pull container images from private registry
+  imagePullSecrets:
+    - name: workshop-registry-secret
+  
+  # High availability configuration with 3 PostgreSQL instances
+  # One primary and two replicas for fault tolerance and read scalability
   instances: 3
+  
+  # Persistent volume storage configuration
   storage:
-    size: 10Gi
+    size: 10Gi  # 10GB storage per instance
+  
+  # Initial database setup
   bootstrap:
     initdb:
-      database: tododb
-      owner: todo-demo-app
+      database: tododb            # Initial database name
+      owner: todo-demo-app        # Database owner (used for application connections)
+  
+  # PostgreSQL configuration parameters
   postgresql:
     parameters:
-      shared_buffers: "256MB"
+      shared_buffers: "256MB"    # Memory allocated for shared data/index caching
+  
+  # Update strategy for major version upgrades
+  # "unsupervised" means operator won't block upgrades
   primaryUpdateStrategy: unsupervised
+  
+  # Enable Prometheus monitoring via PodMonitor custom resource
+  # Will create metrics endpoint for database performance monitoring
   monitoring:
     enablePodMonitor: true

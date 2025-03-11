@@ -1,4 +1,6 @@
 ---
+# Main deployment configuration for the Todo Demo application
+# This controls how the application pods are deployed and configured
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,6 +9,7 @@ metadata:
   labels:
     app: todo-demo-app
 spec:
+  # Run 2 replicas for high availability while conserving resources
   replicas: 2
   selector:
     matchLabels:
@@ -16,41 +19,49 @@ spec:
       labels:
         app: todo-demo-app
       annotations:
+        # Prometheus scraping configuration - enables automatic metrics collection
+        # These annotations are detected by Prometheus operator
         prometheus.io/scrape: "true"
         prometheus.io/path: "/q/metrics"
         prometheus.io/port: "8080"
         prometheus.io/scheme: "http"
     spec:
+      # Pull container images from private container registry
       imagePullSecrets:
-        - name: github-registry
+        - name: workshop-registry-secret
+      # Pod-level security context - applies to all containers
       securityContext:
-        runAsNonRoot: true
+        runAsNonRoot: true  # Security best practice - never run as root
         seccompProfile:
-          type: RuntimeDefault
+          type: RuntimeDefault  # Use default seccomp profile to restrict syscalls
       containers:
         - name: todo-demo-app
-          image: ghcr.io/coffeesprout/todo-demo-app:latest
+          image: workshop-registry.io/todo-demo-app:latest
           volumeMounts:
-            - name: tmp-volume
+            - name: tmp-volume  # Ephemeral volume for temp files (required with readOnlyRootFilesystem)
               mountPath: /tmp
-          imagePullPolicy: Always
+          imagePullPolicy: Always  # Always pull latest image for deployments
           ports:
-            - containerPort: 8080
+            - containerPort: 8080  # Quarkus application port
+          # Container-level security context - defense in depth security measures
           securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            runAsUser: 185
+            allowPrivilegeEscalation: false  # Prevent privilege escalation
+            readOnlyRootFilesystem: true     # Prevent filesystem modifications
+            runAsNonRoot: true               # Never run as root
+            runAsUser: 185                   # Run as non-privileged user (jboss)
             capabilities:
               drop:
-              - ALL
+              - ALL                          # Drop all Linux capabilities
+          # Resource allocation for predictable performance
+          # Limits prevent container from using more than allocated resources
+          # Requests ensure the container gets minimum guaranteed resources
           resources:
             limits:
-              memory: "1536Mi"
-              cpu: "1000m"
+              memory: "1536Mi"  # Maximum memory allocation (1.5GB)
+              cpu: "1000m"      # Maximum CPU allocation (1 core)
             requests:
-              memory: "768Mi"
-              cpu: "500m"
+              memory: "768Mi"   # Minimum guaranteed memory (0.75GB)
+              cpu: "500m"       # Minimum guaranteed CPU (half core)
           env:
             # Database connection using CloudNative PG secrets
             - name: QUARKUS_DATASOURCE_JDBC_URL
@@ -130,33 +141,39 @@ spec:
               value: "-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
             - name: JAVA_DIAGNOSTICS
               value: "true"
+          # Health probes - critical for container lifecycle management
+          # Readiness probe - determines if pod should receive traffic
           readinessProbe:
             httpGet:
-              path: /health/ready
+              path: /health/ready  # Quarkus SmallRye Health readiness endpoint
               port: 8080
-            initialDelaySeconds: 20
-            periodSeconds: 10
-            timeoutSeconds: 3
-            successThreshold: 1
-            failureThreshold: 3
+            initialDelaySeconds: 20  # Wait 20s before first probe
+            periodSeconds: 10        # Check every 10s
+            timeoutSeconds: 3        # Probe timeout
+            successThreshold: 1      # Must succeed once to be ready
+            failureThreshold: 3      # Allow 3 failures before marking unready
+          
+          # Liveness probe - determines if pod should be restarted
           livenessProbe:
             httpGet:
-              path: /health/live
+              path: /health/live    # Quarkus SmallRye Health liveness endpoint
               port: 8080
-            initialDelaySeconds: 60
-            periodSeconds: 30
+            initialDelaySeconds: 60  # Longer delay to allow full startup
+            periodSeconds: 30        # Less frequent checks for liveness
             timeoutSeconds: 3
             successThreshold: 1
-            failureThreshold: 3
+            failureThreshold: 3      # Restart after 3 consecutive failures
+          
+          # Startup probe - gives app time to startup before liveness kicks in
           startupProbe:
             httpGet:
-              path: /health/live
+              path: /health/live    # Same endpoint as liveness
               port: 8080
             initialDelaySeconds: 10
-            periodSeconds: 5
+            periodSeconds: 5         # More frequent during startup
             timeoutSeconds: 3
             successThreshold: 1
-            failureThreshold: 20
+            failureThreshold: 20     # Allow up to 20 failures (100s) during startup
       volumes:
         - name: tmp-volume
           emptyDir: {}

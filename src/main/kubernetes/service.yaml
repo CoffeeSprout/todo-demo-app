@@ -1,4 +1,6 @@
 ---
+# Service definition for Todo Demo application
+# This creates a stable network endpoint for accessing the application pods
 apiVersion: v1
 kind: Service
 metadata:
@@ -7,11 +9,14 @@ metadata:
   labels:
     app: todo-demo-app
 spec:
+  # Select pods with matching label
   selector:
     app: todo-demo-app
   ports:
-    - name: http
-      protocol: TCP
-      port: 80
-      targetPort: 8080
+    - name: http           # Named port for easier reference
+      protocol: TCP        
+      port: 80             # The port exposed by the service
+      targetPort: 8080     # Maps to containerPort in deployment
+  # ClusterIP type makes service only accessible within the cluster
+  # External access is managed via Ingress resource
   type: ClusterIP

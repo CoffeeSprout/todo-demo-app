@@ -1,58 +1,84 @@
+# Banzai Cloud Logging Operator Configuration
+# This multi-resource file defines the logging pipeline for the Todo Demo App
+
 ---
+# Main Logging resource defines global behavior and resource allocation
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: Logging
 metadata:
   name: todo-demo-app-logging
   namespace: todo-demo-app
 spec:
+  # Fluentd is the central log aggregator with more processing capabilities
   fluentd:
     resources:
       limits:
-        cpu: 200m
-        memory: 256Mi
+        cpu: 200m        # 20% of a CPU core maximum
+        memory: 256Mi    # 256MB maximum memory
       requests:
-        cpu: 100m
-        memory: 128Mi
+        cpu: 100m        # 10% of a CPU core guaranteed
+        memory: 128Mi    # 128MB guaranteed memory
+  
+  # FluentBit is the lightweight log collector deployed as DaemonSet
+  # It collects logs from containers and forwards to Fluentd
   fluentbit:
     resources:
       limits:
-        cpu: 100m
-        memory: 128Mi
+        cpu: 100m        # 10% of a CPU core maximum
+        memory: 128Mi    # 128MB maximum memory
       requests:
-        cpu: 50m
-        memory: 64Mi
+        cpu: 50m         # 5% of a CPU core guaranteed
+        memory: 64Mi     # 64MB guaranteed memory
+  
+  # Namespace that hosts the logging operator controller
   controlNamespace: todo-demo-app
+
 ---
+# Flow defines how logs are processed and where they go
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: Flow
 metadata:
   name: todo-demo-app-flow
   namespace: todo-demo-app
 spec:
+  # Filters to process logs before sending to output
   filters:
+    # Parse JSON logs (our app produces JSON logs in production)
     - parser:
         parse:
           type: json
+    # Create consistent tag format for easier searching and filtering
     - tag_normaliser:
         format: ${namespace_name}.${pod_name}.${container_name}
+  
+  # Select which pods to collect logs from
   match:
     - select:
         labels:
-          app: todo-demo-app
+          app: todo-demo-app  # Match our application pods
+  
+  # Reference to output configuration
   localOutputRefs:
     - todo-demo-app-output
+
 ---
+# Output defines where logs are sent
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: Output
 metadata:
   name: todo-demo-app-output
   namespace: todo-demo-app
 spec:
+  # Send logs to Elasticsearch
   elasticsearch:
+    # Elasticsearch service endpoint (cluster-internal DNS)
     host: elasticsearch-master.logging.svc.cluster.local
     port: 9200
+    # Custom index name for easier identification
     index_name: todo-demo-app-logs
+    
+    # Buffer configuration to optimize performance and reliability
     buffer:
-      timekey: 1m
-      timekey_wait: 30s
-      timekey_use_utc: true
+      timekey: 1m            # Flush buffer every 1 minute
+      timekey_wait: 30s      # Wait 30s to ensure all logs are collected
+      timekey_use_utc: true  # Use UTC timezone for consistency
