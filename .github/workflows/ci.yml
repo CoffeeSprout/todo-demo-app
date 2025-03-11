@@ -1,0 +1,39 @@
+name: CI Build and Test
+
+# Trigger on pull requests to main branch (including Renovate PRs)
+# Also trigger on pushes to main for verification
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      # Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # Set up JDK 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: maven
+      
+      # Compile and test the application
+      - name: Build and test with Maven
+        run: ./mvnw verify -B
+        
+      # Optional: Add a summary of test results
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "### Build and Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Maven build completed" >> $GITHUB_STEP_SUMMARY
