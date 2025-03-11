@@ -50,6 +50,30 @@ docker-compose up -d
 docker-compose down
 ```
 
+### Building Multi-Architecture Images for Kubernetes
+
+When building container images on a Mac (Apple Silicon/ARM) for deployment to a Kubernetes cluster running on AMD64 architecture, you need to build multi-architecture images:
+
+#### Option 1: Using Docker Buildx (recommended)
+
+```bash
+# Build and push multi-architecture image
+docker buildx create --name mybuilder --use
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -f src/main/docker/Dockerfile.jvm \
+  -t registry.example.com/todo-demo-app:latest \
+  --push .
+```
+
+#### Option 2: Using Podman
+
+```bash
+# For Podman, specify the platform when building
+podman build --platform=linux/amd64 \
+  -f src/main/docker/Dockerfile.jvm \
+  -t registry.example.com/todo-demo-app:latest .
+podman push registry.example.com/todo-demo-app:latest
+```
 ## Using Podman Compose
 
 If you're using Podman instead of Docker:

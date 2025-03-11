@@ -5,7 +5,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: todo-demo-app-hpa
-  namespace: todo-demo-app
+  namespace: quarkus-k8s-barry
 spec:
   # Reference to the target deployment to scale
   scaleTargetRef:

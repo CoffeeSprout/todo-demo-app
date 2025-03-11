@@ -5,7 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: todo-demo-app
-  namespace: todo-demo-app
+  namespace: quarkus-k8s-barry
   labels:
     app: todo-demo-app
 spec:
@@ -25,6 +25,9 @@ spec:
         prometheus.io/path: "/q/metrics"
         prometheus.io/port: "8080"
         prometheus.io/scheme: "http"
+        # Additional app info
+        app.kubernetes.io/name: "todo-demo-app"
+        app.kubernetes.io/part-of: "todo-demo-app"
     spec:
       # Pull container images from private container registry
       imagePullSecrets:
@@ -63,19 +66,12 @@ spec:
               memory: "768Mi"   # Minimum guaranteed memory (0.75GB)
               cpu: "500m"       # Minimum guaranteed CPU (half core)
           env:
-            # Database connection using CloudNative PG secrets
+            # Database connection using CloudNative PG operator
+            # Set database connection parameters explicitly
+            - name: QUARKUS_DATASOURCE_DB_KIND
+              value: "postgresql"
             - name: QUARKUS_DATASOURCE_JDBC_URL
-              value: "jdbc:postgresql://$(DB_HOST)/$(DB_NAME)?loggerLevel=OFF"
-            - name: DB_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: todo-db-app
-                  key: host
-            - name: DB_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: todo-db-app
-                  key: dbname
+              value: "jdbc:postgresql://todo-db-rw.quarkus-k8s-barry:5432/tododb?loggerLevel=OFF"
             - name: QUARKUS_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -134,9 +130,17 @@ spec:
               value: "75"
             - name: JAVA_INITIAL_MEM_RATIO
               value: "40"
-            # Set Quarkus profile to production
+            # Set Quarkus profile and HTTP configuration
             - name: QUARKUS_PROFILE
               value: "prod"
+            - name: QUARKUS_HTTP_ROOT_PATH
+              value: "/"
+            - name: QUARKUS_HTTP_PORT
+              value: "8080"
+            - name: QUARKUS_HTTP_CORS
+              value: "true"
+            - name: QUARKUS_HTTP_CORS_ORIGINS
+              value: "*"
             - name: JAVA_OPTS_APPEND
               value: "-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
             - name: JAVA_DIAGNOSTICS
@@ -145,7 +149,7 @@ spec:
           # Readiness probe - determines if pod should receive traffic
           readinessProbe:
             httpGet:
-              path: /health/ready  # Quarkus SmallRye Health readiness endpoint
+              path: /q/health/ready  # Quarkus SmallRye Health readiness endpoint
               port: 8080
             initialDelaySeconds: 20  # Wait 20s before first probe
             periodSeconds: 10        # Check every 10s
@@ -156,7 +160,7 @@ spec:
           # Liveness probe - determines if pod should be restarted
           livenessProbe:
             httpGet:
-              path: /health/live    # Quarkus SmallRye Health liveness endpoint
+              path: /q/health/live    # Quarkus SmallRye Health liveness endpoint
               port: 8080
             initialDelaySeconds: 60  # Longer delay to allow full startup
             periodSeconds: 30        # Less frequent checks for liveness
@@ -167,13 +171,13 @@ spec:
           # Startup probe - gives app time to startup before liveness kicks in
           startupProbe:
             httpGet:
-              path: /health/live    # Same endpoint as liveness
+              path: /q/health/live    # Same endpoint as liveness
               port: 8080
-            initialDelaySeconds: 10
+            initialDelaySeconds: 20
             periodSeconds: 5         # More frequent during startup
-            timeoutSeconds: 3
+            timeoutSeconds: 5
             successThreshold: 1
-            failureThreshold: 20     # Allow up to 20 failures (100s) during startup
+            failureThreshold: 30     # Allow up to 30 failures (150s) during startup
       volumes:
         - name: tmp-volume
           emptyDir: {}

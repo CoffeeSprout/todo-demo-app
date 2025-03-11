@@ -5,20 +5,27 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: todo-demo-app-ingress
-  namespace: todo-demo-app
+  namespace: quarkus-k8s-barry
   annotations:
     # Ingress controller configuration
     kubernetes.io/ingress.class: haproxy  # Using HAProxy Ingress controller
     
     # TLS/SSL certificate management with Let's Encrypt
     # Automatically provisions and renews certificates
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/cluster-issuer: letsencrypt-staging
     
     # DNS automation with external-dns controller
     # Automatically creates/updates DNS records in your DNS provider
-    external-dns.alpha.kubernetes.io/hostname: "todo-demo.coffeesprout.cloud"
+    external-dns.alpha.kubernetes.io/hostname: "todo-barry.hacknight043.coffeesprout.dev"
     
-    # Additional security headers could be added here
+    # HAProxy configuration for reliability
+    haproxy-ingress.github.io/backend-check-interval: "2s"
+    haproxy-ingress.github.io/timeout-server: "30s"
+    haproxy-ingress.github.io/timeout-connect: "5s"
+    haproxy-ingress.github.io/timeout-client: "30s"
+    haproxy-ingress.github.io/balance-algorithm: "roundrobin"
+    
+    # Additional security headers
     # haproxy-ingress.github.io/ssl-redirect: "true"
     # haproxy-ingress.github.io/hsts: "true"
     # haproxy-ingress.github.io/hsts-max-age: "31536000"
@@ -26,14 +33,14 @@ spec:
   # TLS configuration
   tls:
     - hosts:
-        - todo-demo.coffeesprout.cloud
+        - todo-barry.hacknight043.coffeesprout.dev
       # Secret name where the TLS certificate will be stored
       # This secret is created automatically by cert-manager
       secretName: todo-demo-app-tls
   
   # Routing rules
   rules:
-    - host: todo-demo.coffeesprout.cloud  # Domain name for the application
+    - host: todo-barry.hacknight043.coffeesprout.dev  # Domain name for the application
       http:
         paths:
           - path: /              # Root path

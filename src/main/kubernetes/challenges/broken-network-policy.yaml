@@ -2,6 +2,14 @@
 # Network Policy for restricting pod network access
 # Implements security best practice of limiting network communication
 # to only what is necessary (principle of least privilege)
+# WARNING: INTENTIONALLY BROKEN FOR ADVANCED TROUBLESHOOTING EXERCISE
+# This network policy has two critical issues:
+# 1. It targets ingress-nginx instead of HAProxy ingress controller
+# 2. It blocks all external API access (OpenAI) with commented rules
+#
+# The result will be a partially working application with:
+# - 503 errors when accessing from outside the cluster
+# - Successful database access but hanging AI features
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -19,27 +27,12 @@ spec:
   
   # === INGRESS RULES (inbound traffic) ===
   ingress:
-  # Allow traffic from the HAProxy ingress controller to port 8080
+  # Allow traffic from the ingress-nginx namespace to port 8080
   # This allows the ingress controller to route external traffic to our application
   - from:
     - namespaceSelector:
         matchLabels:
-          name: haproxy-controller
-    ports:
-    - protocol: TCP
-      port: 8080
-  # Alternative selector in case namespace labeling is different
-  - from:
-    - namespaceSelector: {}
-      podSelector:
-        matchLabels:
-          app.kubernetes.io/name: haproxy-ingress
-    ports:
-    - protocol: TCP
-      port: 8080
-  # Fallback allowing ingress from any namespace (temporary for debugging)
-  - from:
-    - namespaceSelector: {}
+          name: ingress-nginx
     ports:
     - protocol: TCP
       port: 8080
@@ -67,20 +60,15 @@ spec:
       port: 53
       endPort: 53
       
-  # Allow HTTPS egress for OpenAI API access
-  - to:
-    - ipBlock:
-        cidr: 0.0.0.0/0  # Allow outbound HTTPS to any destination
-    ports:
-    - protocol: TCP
-      port: 443  # HTTPS for API access
-    
-  # Allow egress to api.openai.com specifically
-  - to:
-    - ipBlock:
-        cidr: 0.0.0.0/0  # OpenAI's IP ranges can change, so we use a broader rule
-    ports:
-    - protocol: TCP
-      port: 443
-    - protocol: TCP
-      port: 80
+  # TODO: Add egress rule for OpenAI API if using external API
+  # - to:
+  #   - ipBlock:
+  #       cidr: 0.0.0.0/0  # Or more specific CIDR for OpenAI
+  #       except:
+  #         - 10.0.0.0/8     # RFC 1918 private range
+  #         - 172.16.0.0/12  # RFC 1918 private range
+  #         - 192.168.0.0/16 # RFC 1918 private range
+  #         - 127.0.0.0/8    # Localhost
+  #   ports:
+  #   - protocol: TCP
+  #     port: 443  # HTTPS

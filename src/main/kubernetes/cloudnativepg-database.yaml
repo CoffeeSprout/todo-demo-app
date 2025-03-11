@@ -4,7 +4,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: todo-db
-  namespace: todo-demo-app
+  namespace: quarkus-k8s-barry
 spec:
   # Use latest PostgreSQL 17.3 image from CloudNative PG
   imageName: ghcr.io/cloudnative-pg/postgresql:17.3-bookworm
@@ -16,6 +16,7 @@ spec:
   # Persistent volume storage configuration
   storage:
     size: 10Gi  # 10GB storage per instance
+    storageClass: openebs-hostpath
   
   # Initial database setup
   bootstrap:
@@ -36,3 +37,11 @@ spec:
   # Will create metrics endpoint for database performance monitoring
   monitoring:
     enablePodMonitor: true
+
+  resources:
+    requests:
+      memory: "1024Mi"
+      cpu: "100m"
+    limits:
+      memory: "1512Mi"
+      cpu: "400m"
