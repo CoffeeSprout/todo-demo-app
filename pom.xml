@@ -110,13 +110,6 @@
             <artifactId>quarkus-web-bundler</artifactId>
             <version>1.7.3</version>
         </dependency>-->
-        <dependency>
-            <groupId>org.mvnpm.at.mvnpm</groupId>
-            <artifactId>vaadin-webcomponents</artifactId>
-            <version>24.3.11</version>
-            <!--<scope>provided</scope>-->
-            <scope>runtime</scope>
-        </dependency>
         
         <!-- Logging for production only -->
         <dependency>
