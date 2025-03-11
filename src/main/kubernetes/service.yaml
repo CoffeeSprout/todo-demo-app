@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-demo-app
+  namespace: todo-demo-app
+  labels:
+    app: todo-demo-app
+spec:
+  selector:
+    app: todo-demo-app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

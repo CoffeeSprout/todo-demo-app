@@ -1,0 +1,58 @@
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Logging
+metadata:
+  name: todo-demo-app-logging
+  namespace: todo-demo-app
+spec:
+  fluentd:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  fluentbit:
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+  controlNamespace: todo-demo-app
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Flow
+metadata:
+  name: todo-demo-app-flow
+  namespace: todo-demo-app
+spec:
+  filters:
+    - parser:
+        parse:
+          type: json
+    - tag_normaliser:
+        format: ${namespace_name}.${pod_name}.${container_name}
+  match:
+    - select:
+        labels:
+          app: todo-demo-app
+  localOutputRefs:
+    - todo-demo-app-output
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Output
+metadata:
+  name: todo-demo-app-output
+  namespace: todo-demo-app
+spec:
+  elasticsearch:
+    host: elasticsearch-master.logging.svc.cluster.local
+    port: 9200
+    index_name: todo-demo-app-logs
+    buffer:
+      timekey: 1m
+      timekey_wait: 30s
+      timekey_use_utc: true

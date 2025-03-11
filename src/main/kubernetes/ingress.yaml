@@ -1,0 +1,26 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: todo-demo-app-ingress
+  namespace: todo-demo-app
+  annotations:
+    kubernetes.io/ingress.class: haproxy
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    external-dns.alpha.kubernetes.io/hostname: "todo-demo.coffeesprout.cloud"
+spec:
+  tls:
+    - hosts:
+        - todo-demo.coffeesprout.cloud
+      secretName: todo-demo-app-tls
+  rules:
+    - host: todo-demo.coffeesprout.cloud
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: todo-demo-app
+                port:
+                  number: 80

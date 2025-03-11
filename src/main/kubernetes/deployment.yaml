@@ -1,0 +1,162 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-demo-app
+  namespace: todo-demo-app
+  labels:
+    app: todo-demo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: todo-demo-app
+  template:
+    metadata:
+      labels:
+        app: todo-demo-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/q/metrics"
+        prometheus.io/port: "8080"
+        prometheus.io/scheme: "http"
+    spec:
+      imagePullSecrets:
+        - name: github-registry
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: todo-demo-app
+          image: ghcr.io/coffeesprout/todo-demo-app:latest
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 185
+            capabilities:
+              drop:
+              - ALL
+          resources:
+            limits:
+              memory: "1536Mi"
+              cpu: "1000m"
+            requests:
+              memory: "768Mi"
+              cpu: "500m"
+          env:
+            # Database connection using CloudNative PG secrets
+            - name: QUARKUS_DATASOURCE_JDBC_URL
+              value: "jdbc:postgresql://$(DB_HOST)/$(DB_NAME)?loggerLevel=OFF"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: todo-db-app
+                  key: host
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: todo-db-app
+                  key: dbname
+            - name: QUARKUS_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: todo-db-app
+                  key: username
+            - name: QUARKUS_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: todo-db-app
+                  key: password
+            # AI configuration
+            - name: QUARKUS_LANGCHAIN4J_OPENAI_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-demo-app-config
+                  key: langchain4j-openai-api-key
+            # Logging configuration
+            - name: QUARKUS_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-demo-app-config
+                  key: quarkus-log-level
+            - name: QUARKUS_LOG_CONSOLE_JSON
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-demo-app-config
+                  key: quarkus-log-console-json
+            - name: QUARKUS_LANGCHAIN4J_LOG_REQUESTS
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-demo-app-config
+                  key: langchain4j-log-requests
+            - name: QUARKUS_LANGCHAIN4J_LOG_RESPONSES
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-demo-app-config
+                  key: langchain4j-log-responses
+            # Metrics configuration
+            - name: QUARKUS_SMALLRYE_METRICS_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-demo-app-config
+                  key: quarkus-smallrye-metrics-path
+            - name: QUARKUS_SMALLRYE_METRICS_EXTENSIONS_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-demo-app-config
+                  key: quarkus-smallrye-metrics-extensions-enabled
+            - name: QUARKUS_SMALLRYE_METRICS_JAXRS_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: todo-demo-app-config
+                  key: quarkus-smallrye-metrics-jaxrs-enabled
+            # JVM Memory Optimization for Kubernetes
+            - name: JAVA_MAX_MEM_RATIO
+              value: "75"
+            - name: JAVA_INITIAL_MEM_RATIO
+              value: "40"
+            # Set Quarkus profile to production
+            - name: QUARKUS_PROFILE
+              value: "prod"
+            - name: JAVA_OPTS_APPEND
+              value: "-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+            - name: JAVA_DIAGNOSTICS
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 20
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}

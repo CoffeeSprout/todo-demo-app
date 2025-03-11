@@ -1,0 +1,20 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: todo-db
+  namespace: todo-demo-app
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:17.3-bookworm
+  instances: 3
+  storage:
+    size: 10Gi
+  bootstrap:
+    initdb:
+      database: tododb
+      owner: todo-demo-app
+  postgresql:
+    parameters:
+      shared_buffers: "256MB"
+  primaryUpdateStrategy: unsupervised
+  monitoring:
+    enablePodMonitor: true
