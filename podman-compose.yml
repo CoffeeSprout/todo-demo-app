@@ -1,0 +1,49 @@
+version: '3'
+
+# IMPORTANT: Replace 'yourname' in this file with your actual name to avoid conflicts with other participants
+# For example: todo-alice, todo-bob, etc.
+
+services:
+  app:
+    # Change 'yourname' to your name (e.g., todo-alice:1.0.0-SNAPSHOT)
+    image: todo-barry:1.0.0-SNAPSHOT
+    build:
+      context: .
+      dockerfile: src/main/docker/Dockerfile.jvm
+    container_name: todo-barry-app # Change this to your unique name
+    ports:
+      - "8080:8080"
+    environment:
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://db:5432/tododb
+      - QUARKUS_DATASOURCE_USERNAME=quarkus
+      - QUARKUS_DATASOURCE_PASSWORD=quarkus
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/q/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  db:
+    image: postgres:17
+    # Use a unique container name to avoid conflicts with other participants
+    container_name: todo-barry-db # Change this to your unique name
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=quarkus
+      - POSTGRES_PASSWORD=quarkus
+      - POSTGRES_DB=tododb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quarkus"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+    driver: local

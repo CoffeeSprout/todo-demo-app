@@ -7,11 +7,15 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native -t quarkus/my-artifactId .
+# docker build -f src/main/docker/Dockerfile.native -t todo-<YOUR_NAME>-native:1.0.0-SNAPSHOT .
+# 
+# For example:
+# docker build -f src/main/docker/Dockerfile.native -t todo-alice-native:1.0.0-SNAPSHOT .
+# podman build -f src/main/docker/Dockerfile.native -t todo-bob-native:1.0.0-SNAPSHOT .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/my-artifactId
+# docker run -i --rm -p 8080:8080 todo-<YOUR_NAME>-native:1.0.0-SNAPSHOT
 #
 ###
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9
