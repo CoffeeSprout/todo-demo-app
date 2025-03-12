@@ -1,31 +1,14 @@
 ---
-# Application ConfigMap - centralized non-sensitive configuration
-# Contains settings for AI, logging, metrics, and JVM optimization
+# Application ConfigMap - minimal configuration for starter branch
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: todo-demo-app-config
   namespace: default
 data:
-  # AI configuration
-  # WARNING: "demo" is a special key for testing; for production use a proper API key in a Secret
-  langchain4j-openai-api-key: "demo"
+  # Basic logging configuration
+  quarkus-log-level: "INFO"
+  quarkus-log-console-json: "false"
   
-  # Logging configuration
-  quarkus-log-level: "INFO"      # Default logging level
-  langchain4j-log-requests: "true"   # Log AI API requests for troubleshooting
-  langchain4j-log-responses: "true"  # Log AI API responses for troubleshooting
-  quarkus-log-console-json: "true"   # Enable structured JSON logging for production
-  
-  # Metrics configuration - Prometheus compatible metrics
-  quarkus-smallrye-metrics-path: "/q/metrics"  # Standard metrics endpoint
-  quarkus-smallrye-metrics-extensions-enabled: "true"  # Enable extension metrics
-  quarkus-smallrye-metrics-jaxrs-enabled: "true"       # Enable REST endpoint metrics
-  
-  # Optimized JVM settings for Kubernetes
-  # G1GC: Modern garbage collector with pause time goals
-  # MaxGCPauseMillis: Target max pause time of 100ms for improved responsiveness
-  # ExitOnOutOfMemoryError: Crash on OOM for immediate container restart
-  # AlwaysPreTouch: Touch all heap pages on startup to improve runtime performance
-  # HeapDumpOnOutOfMemoryError: Generate heap dump for troubleshooting
-  java-opts: "-XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+ExitOnOutOfMemoryError -XX:+AlwaysPreTouch -XX:+HeapDumpOnOutOfMemoryError"
+  # Basic JVM settings
+  java-opts: "-XX:+UseG1GC"

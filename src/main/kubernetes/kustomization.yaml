@@ -2,16 +2,12 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 # List all the YAML files that should be included in the deployment
+# Starter branch: minimal configuration (no database, no scaling, no monitoring)
 resources:
-  - cloudnativepg-database.yaml
   - configmap.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml
-  - hpa.yaml
-  - pod-disruption-budget.yaml
-  - service-monitor.yaml
-  # network-policy.yaml is intentionally left out for the workshop
   
 # Specify that participants MUST set their namespace
 namespace: CHANGE_ME_TO_YOUR_ASSIGNED_NAMESPACE
@@ -32,27 +28,6 @@ images:
 
 # Patch the resources to fix references affected by namePrefix
 patches:
-  # Fix database connection URL in deployment
-  - target:
-      kind: Deployment
-      name: todo-demo-app
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/env/1/value
-        value: jdbc:postgresql://PARTICIPANT_NAME-todo-db-rw.CHANGE_ME_TO_YOUR_ASSIGNED_NAMESPACE:5432/tododb?loggerLevel=OFF
-      
-  # Fix database secret references in deployment
-  - target:
-      kind: Deployment
-      name: todo-demo-app
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/env/2/valueFrom/secretKeyRef/name
-        value: PARTICIPANT_NAME-todo-db-app
-      - op: replace
-        path: /spec/template/spec/containers/0/env/3/valueFrom/secretKeyRef/name
-        value: PARTICIPANT_NAME-todo-db-app
-        
   # Patch the ingress to have a unique hostname for each participant
   - target:
       kind: Ingress
@@ -74,35 +49,5 @@ patches:
         path: /spec/tls/0/secretName
         value: PARTICIPANT_NAME-todo-demo-app-tls
   
-  # Fix HPA references to use the prefixed deployment name
-  - target:
-      kind: HorizontalPodAutoscaler
-      name: todo-demo-app-hpa
-    patch: |-
-      - op: replace
-        path: /spec/scaleTargetRef/name
-        value: PARTICIPANT_NAME-todo-demo-app
-  
-  # Fix PodDisruptionBudget selector to match the prefixed deployment
-  - target:
-      kind: PodDisruptionBudget
-      name: todo-demo-app-pdb
-    patch: |-
-      - op: replace
-        path: /spec/selector/matchLabels
-        value:
-          app: todo-demo-app
-          app.kubernetes.io/part-of: todo-workshop
-          participant: PARTICIPANT_NAME
-  
-  # Fix ServiceMonitor selector to match the prefixed service
-  - target:
-      kind: ServiceMonitor
-      name: todo-demo-app
-    patch: |-
-      - op: replace
-        path: /spec/selector/matchLabels
-        value:
-          app: todo-demo-app
-          app.kubernetes.io/part-of: todo-workshop
-          participant: PARTICIPANT_NAME
+  # Removed patches for HPA, PodDisruptionBudget, and ServiceMonitor 
+  # as they are not included in the starter branch resources

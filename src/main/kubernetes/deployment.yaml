@@ -9,8 +9,8 @@ metadata:
   labels:
     app: todo-demo-app
 spec:
-  # Run 2 replicas for high availability while conserving resources
-  replicas: 2
+  # Run a single replica for the starter branch
+  replicas: 1
   selector:
     matchLabels:
       app: todo-demo-app
@@ -55,40 +55,18 @@ spec:
             capabilities:
               drop:
               - ALL                          # Drop all Linux capabilities
-          # Resource allocation for predictable performance
-          # Limits prevent container from using more than allocated resources
-          # Requests ensure the container gets minimum guaranteed resources
+          # Resource allocation for minimal starter branch
+          # Reduced resources for simple in-memory implementation
           resources:
             limits:
-              memory: "1536Mi"  # Maximum memory allocation (1.5GB)
-              cpu: "1000m"      # Maximum CPU allocation (1 core)
+              memory: "512Mi"  # Maximum memory allocation (512MB)
+              cpu: "500m"      # Maximum CPU allocation (half core)
             requests:
-              memory: "768Mi"   # Minimum guaranteed memory (0.75GB)
-              cpu: "500m"       # Minimum guaranteed CPU (half core)
+              memory: "256Mi"  # Minimum guaranteed memory (256MB)
+              cpu: "200m"      # Minimum guaranteed CPU (0.2 core)
           env:
-            # Database connection using CloudNative PG operator
-            # Set database connection parameters explicitly
-            - name: QUARKUS_DATASOURCE_DB_KIND
-              value: "postgresql"
-            - name: QUARKUS_DATASOURCE_JDBC_URL
-              value: "jdbc:postgresql://todo-db-rw.default:5432/tododb?loggerLevel=OFF"
-            - name: QUARKUS_DATASOURCE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: todo-db-app
-                  key: username
-            - name: QUARKUS_DATASOURCE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: todo-db-app
-                  key: password
-            # AI configuration
-            - name: QUARKUS_LANGCHAIN4J_OPENAI_API_KEY
-              valueFrom:
-                configMapKeyRef:
-                  name: todo-demo-app-config
-                  key: langchain4j-openai-api-key
-            # Logging configuration
+            # Minimal environment variables for starter branch (in-memory storage)
+            # Basic logging configuration
             - name: QUARKUS_LOG_LEVEL
               valueFrom:
                 configMapKeyRef:
@@ -99,32 +77,6 @@ spec:
                 configMapKeyRef:
                   name: todo-demo-app-config
                   key: quarkus-log-console-json
-            - name: QUARKUS_LANGCHAIN4J_LOG_REQUESTS
-              valueFrom:
-                configMapKeyRef:
-                  name: todo-demo-app-config
-                  key: langchain4j-log-requests
-            - name: QUARKUS_LANGCHAIN4J_LOG_RESPONSES
-              valueFrom:
-                configMapKeyRef:
-                  name: todo-demo-app-config
-                  key: langchain4j-log-responses
-            # Metrics configuration
-            - name: QUARKUS_SMALLRYE_METRICS_PATH
-              valueFrom:
-                configMapKeyRef:
-                  name: todo-demo-app-config
-                  key: quarkus-smallrye-metrics-path
-            - name: QUARKUS_SMALLRYE_METRICS_EXTENSIONS_ENABLED
-              valueFrom:
-                configMapKeyRef:
-                  name: todo-demo-app-config
-                  key: quarkus-smallrye-metrics-extensions-enabled
-            - name: QUARKUS_SMALLRYE_METRICS_JAXRS_ENABLED
-              valueFrom:
-                configMapKeyRef:
-                  name: todo-demo-app-config
-                  key: quarkus-smallrye-metrics-jaxrs-enabled
             # JVM Memory Optimization for Kubernetes
             - name: JAVA_MAX_MEM_RATIO
               value: "75"

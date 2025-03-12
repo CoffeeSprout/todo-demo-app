@@ -1,12 +1,9 @@
 package io.quarkus.sample;
 
 import io.quarkus.sample.audit.AuditType;
-import io.quarkus.panache.common.Sort;
-import io.quarkus.sample.ai.TodoAiService;
 import io.vertx.core.eventbus.EventBus;
 import jakarta.inject.Inject;
 
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -27,10 +24,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 public class TodoResource {
 
     @Inject
-    TodoAiService ai; 
-    
-    @Inject
-    EventBus bus; 
+    EventBus bus;
     
     @OPTIONS
     @Operation(hidden = true)
@@ -41,7 +35,7 @@ public class TodoResource {
     @GET
     @Operation(description = "Get all the todos")
     public List<Todo> getAll() {
-        return Todo.listAll(Sort.by("order"));
+        return Todo.listAll("order");
     }
 
     @GET
@@ -56,7 +50,6 @@ public class TodoResource {
     }
 
     @POST
-    @Transactional
     @Operation(description = "Create a new todo")
     public Response create(@Valid Todo item) {
         item.persist();
@@ -66,13 +59,16 @@ public class TodoResource {
 
     @PATCH
     @Path("/{id}")
-    @Transactional
     @Operation(description = "Update an exiting todo")
     public Response update(@Valid Todo todo, @PathParam("id") Long id) {
         Todo entity = Todo.findById(id);
-        if(entity.completed!=todo.completed && todo.completed){
+        if (entity == null) {
+            throw new WebApplicationException("Todo with id of " + id + " does not exist.", Status.NOT_FOUND);
+        }
+        
+        if(entity.completed != todo.completed && todo.completed) {
             bus.publish(AuditType.TODO_CHECKED.name(), todo);
-        }else if(entity.completed!=todo.completed && !todo.completed){
+        } else if(entity.completed != todo.completed && !todo.completed) {
             bus.publish(AuditType.TODO_UNCHECKED.name(), todo);
         }
         
@@ -81,12 +77,12 @@ public class TodoResource {
         entity.order = todo.order;
         entity.title = todo.title;
         entity.url = todo.url;
+        entity.persist();
         
         return Response.ok(entity).build();
     }
 
     @DELETE
-    @Transactional
     @Operation(description = "Remove all completed todos")
     public Response deleteCompleted() {
         Todo.deleteCompleted();
@@ -94,7 +90,6 @@ public class TodoResource {
     }
 
     @DELETE
-    @Transactional
     @Path("/{id}")
     @Operation(description = "Delete a specific todo")
     public Response deleteOne(@PathParam("id") Long id) {
@@ -106,19 +101,4 @@ public class TodoResource {
         bus.publish(AuditType.TODO_REMOVED.name(), entity);
         return Response.noContent().build();
     }
-
-    @GET
-    @Path("/suggest")
-    @Operation(description = "Suggest something to do")
-    @Transactional
-    public Todo suggest() {
-        Todo suggestion = new Todo();
-        
-        String title = ai.suggestSomethingTodo(1,"Features of my TODO list application");
-        title = title.trim();
-        suggestion.title = title;
-        suggestion.persistAndFlush();        
-        return suggestion;
-    }
-    
 }
