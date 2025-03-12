@@ -9,13 +9,12 @@ spec:
   # Use latest PostgreSQL 17.3 image from CloudNative PG
   imageName: ghcr.io/cloudnative-pg/postgresql:17.3-bookworm
   
-  # High availability configuration with 3 PostgreSQL instances
-  # One primary and two replicas for fault tolerance and read scalability
-  instances: 3
+  # Basic single-node PostgreSQL instance for development/workshop
+  instances: 1
   
   # Persistent volume storage configuration
   storage:
-    size: 10Gi  # 10GB storage per instance
+    size: 1Gi  # 1GB storage per instance - minimal for workshop
     storageClass: openebs-hostpath
   
   # Initial database setup
@@ -24,24 +23,23 @@ spec:
       database: tododb            # Initial database name
       owner: todo-demo-app        # Database owner (used for application connections)
   
-  # PostgreSQL configuration parameters
+  # Basic PostgreSQL configuration parameters
   postgresql:
     parameters:
-      shared_buffers: "256MB"    # Memory allocated for shared data/index caching
+      shared_buffers: "128MB"    # Reduced memory allocation for workshop environment
   
   # Update strategy for major version upgrades
-  # "unsupervised" means operator won't block upgrades
   primaryUpdateStrategy: unsupervised
   
-  # Enable Prometheus monitoring via PodMonitor custom resource
-  # Will create metrics endpoint for database performance monitoring
+  # Disable monitoring for basic setup
   monitoring:
-    enablePodMonitor: true
+    enablePodMonitor: false
 
+  # Minimal resource requirements for workshop
   resources:
     requests:
-      memory: "1024Mi"
-      cpu: "100m"
+      memory: "256Mi"
+      cpu: "50m"
     limits:
-      memory: "1512Mi"
-      cpu: "400m"
+      memory: "512Mi"
+      cpu: "200m"
