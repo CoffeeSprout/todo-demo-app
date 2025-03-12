@@ -39,7 +39,7 @@ spec:
           type: RuntimeDefault  # Use default seccomp profile to restrict syscalls
       containers:
         - name: todo-demo-app
-          image: registry.hacknight043.coffeesprout.dev/todo-demo-app:latest
+          image: registry.hacknight043.coffeesprout.dev/todo-demo-app:latest  # This will be transformed by kustomize
           volumeMounts:
             - name: tmp-volume  # Ephemeral volume for temp files (required with readOnlyRootFilesystem)
               mountPath: /tmp

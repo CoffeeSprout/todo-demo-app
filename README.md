@@ -50,29 +50,86 @@ docker-compose up -d
 docker-compose down
 ```
 
-### Building Multi-Architecture Images for Kubernetes
+### Building and Deploying to Kubernetes
 
-When building container images on a Mac (Apple Silicon/ARM) for deployment to a Kubernetes cluster running on AMD64 architecture, you need to build multi-architecture images:
+For the workshop, each participant will build and deploy their own container to the Kubernetes cluster. Follow these steps:
 
-#### Option 1: Using Docker Buildx (recommended)
+1. **Prepare Your Environment**:
+   - Make sure you have Docker or Podman installed
+   - Ensure you have kubectl configured to access the workshop cluster
+   - Have your assigned namespace and participant name ready
+
+2. **Build and Push Your Container**:
+   
+   We've provided a script that handles the build process for you:
+
+   ```bash
+   # Edit the script to set your participant name
+   vi src/main/kubernetes/build-container.sh
+   
+   # Make the script executable if needed
+   chmod +x src/main/kubernetes/build-container.sh
+   
+   # Run the script from the project root (where pom.xml is)
+   ./src/main/kubernetes/build-container.sh
+   ```
+
+   The script will:
+   - Build the container image with Docker or Podman
+   - Handle platform differences (Apple Silicon vs Intel/AMD)
+   - Tag the image with your participant name
+   - Push to the workshop registry
+
+3. **Deploy to Kubernetes**:
+
+   Once your image is built and pushed, deploy it to your assigned namespace:
+
+   ```bash
+   # Change to the kubernetes directory
+   cd src/main/kubernetes
+   
+   # Edit the deploy script with your details
+   vi deploy.sh
+   
+   # Run the deployment script
+   ./deploy.sh
+   ```
+
+   This will:
+   - Configure Kustomize to use your participant name
+   - Apply all the necessary Kubernetes resources
+   - Create an ingress for your application at https://todo-[yourname].hacknight043.coffeesprout.dev
+
+#### Manual Container Build (Alternative)
+
+If you prefer to build manually, use these commands:
+
+##### Using Docker:
 
 ```bash
-# Build and push multi-architecture image
-docker buildx create --name mybuilder --use
-docker buildx build --platform linux/amd64,linux/arm64 \
+# For Intel/AMD systems
+docker build -f src/main/docker/Dockerfile.jvm -t registry.hacknight043.coffeesprout.dev/[yourname]/todo-demo-app:latest .
+docker push registry.hacknight043.coffeesprout.dev/[yourname]/todo-demo-app:latest
+
+# For Apple Silicon (M1/M2)
+docker buildx build --platform=linux/amd64 \
   -f src/main/docker/Dockerfile.jvm \
-  -t registry.example.com/todo-demo-app:latest \
+  -t registry.hacknight043.coffeesprout.dev/[yourname]/todo-demo-app:latest \
   --push .
 ```
 
-#### Option 2: Using Podman
+##### Using Podman:
 
 ```bash
-# For Podman, specify the platform when building
+# For Intel/AMD systems
+podman build -f src/main/docker/Dockerfile.jvm -t registry.hacknight043.coffeesprout.dev/[yourname]/todo-demo-app:latest .
+podman push registry.hacknight043.coffeesprout.dev/[yourname]/todo-demo-app:latest
+
+# For Apple Silicon (M1/M2)
 podman build --platform=linux/amd64 \
   -f src/main/docker/Dockerfile.jvm \
-  -t registry.example.com/todo-demo-app:latest .
-podman push registry.example.com/todo-demo-app:latest
+  -t registry.hacknight043.coffeesprout.dev/[yourname]/todo-demo-app:latest .
+podman push registry.hacknight043.coffeesprout.dev/[yourname]/todo-demo-app:latest
 ```
 ## Using Podman Compose
 

@@ -7,6 +7,11 @@
 NAMESPACE="CHANGE_ME_TO_YOUR_NAMESPACE"
 PARTICIPANT="CHANGE_ME_TO_YOUR_NAME"
 
+# Container image settings
+REGISTRY="registry.hacknight043.coffeesprout.dev"
+IMAGE_NAME="todo-demo-app"
+IMAGE_TAG="latest"
+
 # Check if variables have been changed from placeholder values
 if [[ "$NAMESPACE" == "CHANGE_ME_TO_YOUR_NAMESPACE" || "$PARTICIPANT" == "CHANGE_ME_TO_YOUR_NAME" ]]; then
   echo "ERROR: You must edit this script to set your namespace and participant name!"
@@ -78,9 +83,12 @@ kubectl apply -k .
 echo "Waiting for deployment to complete..."
 kubectl rollout status deployment/$PARTICIPANT-todo-demo-app -n $NAMESPACE
 
+# Provide deployment status and information
 echo "✅ Deployment complete!"
 echo "🌐 Application will be available at: https://todo-$PARTICIPANT.hacknight043.coffeesprout.dev"
 echo "🔄 It may take a minute or two for the application to become fully available."
+echo ""
+echo "📦 Container image: $REGISTRY/$PARTICIPANT/$IMAGE_NAME:$IMAGE_TAG"
 
 # Provide cleanup instructions
 echo ""

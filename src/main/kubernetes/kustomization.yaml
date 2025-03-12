@@ -24,6 +24,12 @@ commonLabels:
   app.kubernetes.io/part-of: todo-workshop
   participant: PARTICIPANT_NAME
 
+# Image transformation to use participant-specific container image
+images:
+  - name: registry.hacknight043.coffeesprout.dev/todo-demo-app
+    newName: registry.hacknight043.coffeesprout.dev/PARTICIPANT_NAME/todo-demo-app
+    newTag: latest
+
 # Patch the resources to fix references affected by namePrefix
 patches:
   # Fix database connection URL in deployment
