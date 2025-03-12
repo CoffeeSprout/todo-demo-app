@@ -4,7 +4,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: todo-db
-  namespace: quarkus-k8s-barry
+  namespace: default
 spec:
   # Use latest PostgreSQL 17.3 image from CloudNative PG
   imageName: ghcr.io/cloudnative-pg/postgresql:17.3-bookworm

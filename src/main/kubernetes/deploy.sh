@@ -1,14 +1,26 @@
 #!/bin/bash
 
-# Simple deployment script for Todo Demo App
-# Hardcoded for Barry's deployment in namespace quarkus-k8s-barry
+# Deployment script for Todo Demo App using Kustomize
+# Variables must be manually set before running this script
 
-echo "Deploying Todo Demo App to namespace quarkus-k8s-barry..."
+# These placeholder values MUST be changed before running
+NAMESPACE="CHANGE_ME_TO_YOUR_NAMESPACE"
+PARTICIPANT="CHANGE_ME_TO_YOUR_NAME"
+
+# Check if variables have been changed from placeholder values
+if [[ "$NAMESPACE" == "CHANGE_ME_TO_YOUR_NAMESPACE" || "$PARTICIPANT" == "CHANGE_ME_TO_YOUR_NAME" ]]; then
+  echo "ERROR: You must edit this script to set your namespace and participant name!"
+  echo "Open deploy.sh in a text editor and change the NAMESPACE and PARTICIPANT variables."
+  exit 1
+fi
+
+echo "Deploying Todo Demo App for participant '$PARTICIPANT' to namespace '$NAMESPACE'..."
 
 # Verify we can access the namespace
-if ! kubectl get pods -n quarkus-k8s-barry > /dev/null 2>&1; then
-  echo "ERROR: Cannot access namespace quarkus-k8s-barry!"
+if ! kubectl get pods -n $NAMESPACE > /dev/null 2>&1; then
+  echo "ERROR: Cannot access namespace $NAMESPACE!"
   echo "Make sure your kubeconfig is properly set up with: export KUBECONFIG=/path/to/your/kubeconfig"
+  echo "Or verify that the namespace exists with: kubectl create namespace $NAMESPACE"
   exit 1
 fi
 
@@ -26,30 +38,51 @@ if [[ $update_creds == "y" || $update_creds == "Y" ]]; then
     --docker-username=$username \
     --docker-password=$password \
     --docker-email=$email \
-    --namespace=quarkus-k8s-barry \
+    --namespace=$NAMESPACE \
     --dry-run=client -o yaml > registry-secret.yaml
   
+  kubectl apply -f registry-secret.yaml
   echo "Registry credentials updated."
 fi
 
-# Apply all resources
-echo "Applying Kubernetes manifests..."
-kubectl apply -f configmap.yaml
-kubectl apply -f registry-secret.yaml
-kubectl apply -f cloudnativepg-database.yaml
-kubectl apply -f deployment.yaml
-kubectl apply -f service.yaml
-kubectl apply -f ingress.yaml
-kubectl apply -f hpa.yaml
-kubectl apply -f network-policy.yaml
-kubectl apply -f pod-disruption-budget.yaml
-kubectl apply -f service-monitor.yaml
-kubectl apply -f logging-config.yaml
+# Check if kustomization.yaml exists
+if [ ! -f "kustomization.yaml" ]; then
+  echo "ERROR: kustomization.yaml not found in the current directory!"
+  exit 1
+fi
+
+# Update kustomization.yaml with participant information
+echo "Updating kustomization.yaml with your settings..."
+
+# Create a temporary file (compatible with both Linux and macOS)
+TMP_FILE=$(mktemp)
+
+# Replace namespace placeholder
+cat kustomization.yaml | sed "s/CHANGE_ME_TO_YOUR_ASSIGNED_NAMESPACE/$NAMESPACE/g" > "$TMP_FILE"
+cat "$TMP_FILE" > kustomization.yaml
+
+# Replace participant placeholder
+cat kustomization.yaml | sed "s/PARTICIPANT_NAME/$PARTICIPANT/g" > "$TMP_FILE"
+cat "$TMP_FILE" > kustomization.yaml
+
+# Clean up
+rm "$TMP_FILE"
+
+echo "kustomization.yaml updated with namespace '$NAMESPACE' and participant '$PARTICIPANT'."
+
+# Apply using Kustomize
+echo "Applying Kubernetes manifests using Kustomize..."
+kubectl apply -k .
 
 # Wait for deployment
 echo "Waiting for deployment to complete..."
-kubectl rollout status deployment/todo-demo-app -n quarkus-k8s-barry
+kubectl rollout status deployment/$PARTICIPANT-todo-demo-app -n $NAMESPACE
 
 echo "✅ Deployment complete!"
-echo "🌐 Application will be available at: https://todo-barry.hacknight043.coffeesprout.dev"
+echo "🌐 Application will be available at: https://todo-$PARTICIPANT.hacknight043.coffeesprout.dev"
 echo "🔄 It may take a minute or two for the application to become fully available."
+
+# Provide cleanup instructions
+echo ""
+echo "To tear down all resources when you're done:"
+echo "kubectl delete -k ."

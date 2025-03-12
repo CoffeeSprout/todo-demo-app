@@ -6,7 +6,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: todo-demo-app
-  namespace: quarkus-k8s-barry
+  namespace: default
   labels:
     # This label is used by Prometheus to discover this ServiceMonitor
     # Must match the Prometheus Operator's label selector

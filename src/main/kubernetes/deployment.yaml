@@ -5,7 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: todo-demo-app
-  namespace: quarkus-k8s-barry
+  namespace: default
   labels:
     app: todo-demo-app
 spec:
@@ -71,7 +71,7 @@ spec:
             - name: QUARKUS_DATASOURCE_DB_KIND
               value: "postgresql"
             - name: QUARKUS_DATASOURCE_JDBC_URL
-              value: "jdbc:postgresql://todo-db-rw.quarkus-k8s-barry:5432/tododb?loggerLevel=OFF"
+              value: "jdbc:postgresql://todo-db-rw.default:5432/tododb?loggerLevel=OFF"
             - name: QUARKUS_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:

@@ -5,7 +5,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: todo-demo-app
-  namespace: quarkus-k8s-barry
+  namespace: default
   labels:
     app: todo-demo-app
 spec:

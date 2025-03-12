@@ -5,7 +5,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: todo-demo-app-ingress
-  namespace: quarkus-k8s-barry
+  namespace: default
   annotations:
     # Ingress controller configuration
     kubernetes.io/ingress.class: haproxy  # Using HAProxy Ingress controller
@@ -16,7 +16,7 @@ metadata:
     
     # DNS automation with external-dns controller
     # Automatically creates/updates DNS records in your DNS provider
-    external-dns.alpha.kubernetes.io/hostname: "todo-barry.hacknight043.coffeesprout.dev"
+    external-dns.alpha.kubernetes.io/hostname: "todo-PARTICIPANT_NAME.hacknight043.coffeesprout.dev"
     
     # HAProxy configuration for reliability
     haproxy-ingress.github.io/backend-check-interval: "2s"
@@ -33,14 +33,14 @@ spec:
   # TLS configuration
   tls:
     - hosts:
-        - todo-barry.hacknight043.coffeesprout.dev
+        - todo-PARTICIPANT_NAME.hacknight043.coffeesprout.dev
       # Secret name where the TLS certificate will be stored
       # This secret is created automatically by cert-manager
       secretName: todo-demo-app-tls
   
   # Routing rules
   rules:
-    - host: todo-barry.hacknight043.coffeesprout.dev  # Domain name for the application
+    - host: todo-PARTICIPANT_NAME.hacknight043.coffeesprout.dev  # Domain name for the application
       http:
         paths:
           - path: /              # Root path

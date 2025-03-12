@@ -6,7 +6,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: todo-demo-app-pdb
-  namespace: quarkus-k8s-barry
+  namespace: default
 spec:
   # Ensures at least 1 pod is always available during disruptions
   # This prevents all pods from being taken down at once
@@ -20,3 +20,4 @@ spec:
   selector:
     matchLabels:
       app: todo-demo-app
+
