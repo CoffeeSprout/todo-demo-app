@@ -24,16 +24,26 @@ public class Todo extends PanacheEntity {
     @Schema(example = "https://github.com/quarkusio/todo-demo-app")
     public String url;
 
+    // TODO: Implement this method to find todos that are not completed
+    // Hint: Use Panache's list() method with a filter on the completed field
     public static List<Todo> findNotCompleted() {
-        return list("completed", false);
+        // Replace this with the correct implementation
+        return null;
     }
 
+    // TODO: Implement this method to find completed todos
+    // Hint: Use Panache's list() method with a filter on the completed field
     public static List<Todo> findCompleted() {
-        return list("completed", true);
+        // Replace this with the correct implementation
+        return null;
     }
 
+    // TODO: Implement this method to delete all completed todos
+    // Hint: Use Panache's delete() method with a filter on the completed field
+    // This should return the number of deleted todos
     public static long deleteCompleted() {
-        return delete("completed", true);
+        // Replace this with the correct implementation
+        return 0;
     }
 
 }

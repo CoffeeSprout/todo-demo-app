@@ -52,7 +52,7 @@ public class TodoResource {
     }
 
     @POST
-    @Transactional
+    // TODO: Add appropriate annotation for transaction management
     @Operation(description = "Create a new todo")
     public Response create(@Valid Todo item) {
         item.persist();
@@ -62,7 +62,7 @@ public class TodoResource {
 
     @PATCH
     @Path("/{id}")
-    @Transactional
+    // TODO: Add appropriate annotation for transaction management
     @Operation(description = "Update an exiting todo")
     public Response update(@Valid Todo todo, @PathParam("id") Long id) {
         Todo entity = Todo.findById(id);
@@ -78,11 +78,14 @@ public class TodoResource {
         entity.title = todo.title;
         entity.url = todo.url;
         
+        // TODO: The entity has been updated but not saved to the database
+        // Add the missing code to persist the changes
+        
         return Response.ok(entity).build();
     }
 
     @DELETE
-    @Transactional
+    // TODO: Add appropriate annotation for transaction management
     @Operation(description = "Remove all completed todos")
     public Response deleteCompleted() {
         Todo.deleteCompleted();
@@ -90,8 +93,8 @@ public class TodoResource {
     }
 
     @DELETE
-    @Transactional
     @Path("/{id}")
+    // TODO: Add appropriate annotation for transaction management
     @Operation(description = "Delete a specific todo")
     public Response deleteOne(@PathParam("id") Long id) {
         Todo entity = Todo.findById(id);
