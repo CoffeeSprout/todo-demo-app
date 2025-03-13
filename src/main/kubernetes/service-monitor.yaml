@@ -16,11 +16,11 @@ spec:
   selector:
     matchLabels:
       app: todo-demo-app  # Must match service labels
-  # Configuration for metrics scraping
+  # TODO: Configure metrics scraping
   endpoints:
-  - port: http            # Must match port name in Service definition
-    path: /q/metrics      # Quarkus metrics endpoint (MicroProfile Metrics)
-    interval: 15s         # Scrape every 15 seconds
-    # Optional settings we could add:
-    # scrapeTimeout: 10s  # Timeout for scrape requests
-    # honorLabels: true   # Preserve application-supplied labels
+  - port: http            # This should match the port name in the Service definition
+    path: ""              # TODO: What is the correct metrics endpoint for Quarkus?
+    interval: ""          # TODO: How often should Prometheus scrape metrics?
+    # Additional settings you might want to configure:
+    # scrapeTimeout: ?    # How long before timing out a scrape request
+    # honorLabels: ?      # Whether to preserve application-supplied labels

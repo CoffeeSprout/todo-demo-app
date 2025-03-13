@@ -17,38 +17,38 @@ spec:
   minReplicas: 2   # Ensures high availability with minimum 2 pods
   maxReplicas: 5   # Upper limit to prevent runaway scaling
   
-  # Metrics used to determine scaling decisions
+  # TODO: Configure metrics for autoscaling decisions
   metrics:
-  # CPU-based scaling - target 70% average utilization
+  # CPU-based scaling
   - type: Resource
     resource:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 70  # Scale up when CPU usage exceeds 70%
+        averageUtilization: 0  # TODO: Set appropriate CPU utilization percentage
   
-  # Memory-based scaling - target 80% average utilization
+  # Memory-based scaling
   - type: Resource
     resource:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 80  # Scale up when memory usage exceeds 80%
+        averageUtilization: 0  # TODO: Set appropriate memory utilization percentage
   
-  # Fine-tuning the scaling behavior to prevent thrashing
+  # TODO: Configure scaling behavior to prevent thrashing
   behavior:
     # Scale up configuration - how aggressively to add pods
     scaleUp:
-      stabilizationWindowSeconds: 60  # Wait 60s after last scale-up event
+      stabilizationWindowSeconds: 0  # TODO: Set appropriate stabilization window
       policies:
       - type: Pods
-        value: 1                      # Add max 1 pod at a time
-        periodSeconds: 60             # Wait 60s between adding pods
+        value: 1                     # How many pods to add at once
+        periodSeconds: 0             # TODO: Set appropriate period
     
     # Scale down configuration - how cautiously to remove pods
     scaleDown:
-      stabilizationWindowSeconds: 300  # Wait 5 minutes after last scale-down event
+      stabilizationWindowSeconds: 0  # TODO: Set appropriate stabilization window
       policies:
       - type: Pods
-        value: 1                       # Remove max 1 pod at a time
-        periodSeconds: 120             # Wait 2 minutes between removing pods
+        value: 1                     # How many pods to remove at once
+        periodSeconds: 0             # TODO: Set appropriate period

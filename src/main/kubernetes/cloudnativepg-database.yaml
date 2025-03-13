@@ -9,9 +9,9 @@ spec:
   # Use latest PostgreSQL 17.3 image from CloudNative PG
   imageName: ghcr.io/cloudnative-pg/postgresql:17.3-bookworm
   
-  # High availability configuration with 3 PostgreSQL instances
-  # One primary and two replicas for fault tolerance and read scalability
-  instances: 3
+  # TODO: Configure appropriate instance count for high availability
+  # How many database instances do we need for proper fault tolerance?
+  instances: 1  # This provides no high availability - needs to be increased
   
   # Persistent volume storage configuration
   storage:

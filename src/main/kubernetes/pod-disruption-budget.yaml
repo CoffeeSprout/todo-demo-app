@@ -8,13 +8,15 @@ metadata:
   name: todo-demo-app-pdb
   namespace: default
 spec:
-  # Ensures at least 1 pod is always available during disruptions
-  # This prevents all pods from being taken down at once
-  # Combined with minReplicas: 2 in HPA, this ensures 50% availability
-  minAvailable: 1
+  # TODO: Configure either minAvailable or maxUnavailable (but not both)
+  # minAvailable ensures a minimum number of pods are always available
+  # maxUnavailable limits how many pods can be down at once
   
-  # Alternative approach would be to use maxUnavailable: 1 (or 50%)
-  # maxUnavailable: 1
+  # Option 1: Use minAvailable to ensure a minimum number of pods
+  # minAvailable: ?
+  
+  # Option 2: Use maxUnavailable to limit pods down during disruption
+  # maxUnavailable: ?
   
   # Select which pods this budget applies to
   selector:
