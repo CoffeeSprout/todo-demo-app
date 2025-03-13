@@ -80,6 +80,9 @@ public class TodoResource {
         
         // TODO: The entity has been updated but not saved to the database
         // Add the missing code to persist the changes
+        // Note: With Panache, entities within a transaction are automatically persisted
+        // when the transaction ends, but without @Transactional annotation, you'll need 
+        // to explicitly call persist()
         
         return Response.ok(entity).build();
     }
