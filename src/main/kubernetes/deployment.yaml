@@ -97,39 +97,34 @@ spec:
               value: "-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
             - name: JAVA_DIAGNOSTICS
               value: "true"
-          # Health probes - critical for container lifecycle management
-          # Readiness probe - determines if pod should receive traffic
+          # TODO: Add the readiness probe configuration
+          # The readiness probe determines if the pod should receive traffic
           readinessProbe:
             httpGet:
-              path: /q/health/ready  # Quarkus SmallRye Health readiness endpoint
-              port: 8080
-            initialDelaySeconds: 20  # Wait 20s before first probe
-            periodSeconds: 10        # Check every 10s
-            timeoutSeconds: 3        # Probe timeout
-            successThreshold: 1      # Must succeed once to be ready
-            failureThreshold: 3      # Allow 3 failures before marking unready
+              path: ""  # TODO: What is the Quarkus SmallRye Health readiness endpoint?
+              port: 0   # TODO: Which port should be used?
+            initialDelaySeconds: 0  # TODO: How long to wait before first probe?
+            periodSeconds: 0        # TODO: How often to check?
+            timeoutSeconds: 0       # TODO: How long before timing out?
+            failureThreshold: 0     # TODO: How many failures before marking unready?
           
-          # Liveness probe - determines if pod should be restarted
+          # TODO: Add the liveness probe configuration
+          # The liveness probe determines if the container should be restarted
           livenessProbe:
             httpGet:
-              path: /q/health/live    # Quarkus SmallRye Health liveness endpoint
-              port: 8080
-            initialDelaySeconds: 60  # Longer delay to allow full startup
-            periodSeconds: 30        # Less frequent checks for liveness
-            timeoutSeconds: 3
-            successThreshold: 1
-            failureThreshold: 3      # Restart after 3 consecutive failures
+              path: ""  # TODO: What is the Quarkus SmallRye Health liveness endpoint?
+              port: 0
+            initialDelaySeconds: 0  # TODO: This should be longer than readiness
+            periodSeconds: 0
+            failureThreshold: 0
           
-          # Startup probe - gives app time to startup before liveness kicks in
+          # TODO: Add the startup probe configuration
+          # The startup probe gives the application time to initialize
           startupProbe:
             httpGet:
-              path: /q/health/live    # Same endpoint as liveness
-              port: 8080
-            initialDelaySeconds: 20
-            periodSeconds: 5         # More frequent during startup
-            timeoutSeconds: 5
-            successThreshold: 1
-            failureThreshold: 30     # Allow up to 30 failures (150s) during startup
+              path: ""  # TODO: Same as liveness or different?
+              port: 0
+            failureThreshold: 0     # TODO: This should allow enough time for startup
       volumes:
         - name: tmp-volume
           emptyDir: {}
