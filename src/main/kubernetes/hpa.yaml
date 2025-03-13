@@ -39,16 +39,16 @@ spec:
   behavior:
     # Scale up configuration - how aggressively to add pods
     scaleUp:
-      stabilizationWindowSeconds: 0  # TODO: Set appropriate stabilization window
+      stabilizationWindowSeconds: 0  # TODO: Set appropriate stabilization window (typically shorter than scale-down)
       policies:
       - type: Pods
         value: 1                     # How many pods to add at once
-        periodSeconds: 0             # TODO: Set appropriate period
+        periodSeconds: 0             # TODO: Set appropriate period (e.g., 60s)
     
     # Scale down configuration - how cautiously to remove pods
     scaleDown:
-      stabilizationWindowSeconds: 0  # TODO: Set appropriate stabilization window
+      stabilizationWindowSeconds: 0  # TODO: Set appropriate stabilization window (typically 5-10 minutes)
       policies:
       - type: Pods
         value: 1                     # How many pods to remove at once
-        periodSeconds: 0             # TODO: Set appropriate period
+        periodSeconds: 0             # TODO: Set appropriate period (e.g., 120s or longer)
