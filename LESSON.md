@@ -9,6 +9,7 @@ Several critical components have placeholders in the Kubernetes configuration fi
 1. In `src/main/kubernetes/deployment.yaml`:
    - Health probes (readiness, liveness, and startup) have empty values
    - You need to configure these probes with correct paths, ports, and timing parameters
+   - Note: The security contexts (pod and container level) are already properly configured, so you don't need to modify them
 
 2. In `src/main/kubernetes/ingress.yaml`:
    - The ingress controller class is missing
