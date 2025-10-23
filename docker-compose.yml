@@ -27,7 +27,7 @@ services:
       start_period: 10s
 
   db:
-    image: postgres:17
+    image: postgres:18
     # Use a unique container name to avoid conflicts with other participants
     container_name: todo-barry-db # Change this to your unique name
     ports:
